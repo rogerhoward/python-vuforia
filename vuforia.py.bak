@@ -1,9 +1,9 @@
 import logging
-import urllib.request, urllib.error, urllib.parse, base64
+import urllib2, base64
 from wsgiref.handlers import format_date_time
 from datetime import datetime
 from time import mktime
-from urllib.parse import urlparse
+from urlparse import urlparse
 from hashlib import sha1, md5
 from hmac import new as hmac
 import json
@@ -99,8 +99,8 @@ class Vuforia(object):
         auth_header = 'VWS %s:%s' % (self.access_key, signature)
         req.add_header('Authorization', auth_header)
         try:
-            return urllib.request.urlopen(req)
-        except urllib.error.HTTPError as e:
+            return urllib2.urlopen(req)
+        except urllib2.HTTPError, e:
             response = json.loads(e.read())
             result_code = response['result_code']
             if result_code == 'RequestTimeTooSkewed':
@@ -128,19 +128,19 @@ class Vuforia(object):
 
     def get_target_by_id(self, target_id):
         url = '%s/targets/%s' % (self.host, target_id)
-        req = urllib.request.Request(url)
+        req = urllib2.Request(url)
         response = self._get_authenticated_response(req)
         return json.loads(response.read())['target_record']
 
     def get_target_ids(self):
         url = '%s/targets' % self.host
-        req = urllib.request.Request(url)
+        req = urllib2.Request(url)
         response = self._get_authenticated_response(req)
         return json.loads(response.read())['results']
 
     def get_summary(self):
         url = '%s/summary' % self.host
-        req = urllib.request.Request(url)
+        req = urllib2.Request(url)
         response = self._get_authenticated_response(req)
         return json.loads(response.read())
 
@@ -153,7 +153,7 @@ class Vuforia(object):
     def add_target(self, data):
         url = '%s/targets' % self.host
         data = json.dumps(data)
-        req = urllib.request.Request(url, data, {'Content-Type': 'application/json; charset=utf-8'})
+        req = urllib2.Request(url, data, {'Content-Type': 'application/json; charset=utf-8'})
         response = self._get_authenticated_response(req)
         return json.loads(response.read())
 
@@ -161,7 +161,7 @@ class Vuforia(object):
         # Takes time to process
         url = '%s/targets/%s' % (self.host, target_id)
         data = json.dumps(data)
-        req = urllib.request.Request(url, data, {'Content-Type': 'application/json; charset=utf-8'})
+        req = urllib2.Request(url, data, {'Content-Type': 'application/json; charset=utf-8'})
         req.get_method = lambda: 'PUT'
         response = self._get_authenticated_response(req)
         return json.loads(response.read())
@@ -169,7 +169,7 @@ class Vuforia(object):
     def delete_target(self, target_id):
         # Takes time to process
         url = '%s/targets/%s' % (self.host, target_id)
-        req = urllib.request.Request(url)
+        req = urllib2.Request(url)
         req.get_method = lambda: 'DELETE'
         response = self._get_authenticated_response(req)
         return json.loads(response.read())
@@ -178,13 +178,13 @@ def main():
     v = Vuforia(access_key="YOUR_KEY_HERE",
                 secret_key="YOUR_KEY_HERE")
     for target in v.get_targets():
-        print(target)
+        print target
 
     image_file = open('PATH_TO_IMAGE')
     image = base64.b64encode(image_file.read())
     metadata_file = open('PATH_TO_METADATAFILE')
     metadata = base64.b64encode(metadata_file.read())
-    print(v.add_target({"name": "zxczxc", "width": 320.0, "image": image, "application_metadata": metadata, "active_flag": 1}))
+    print v.add_target({"name": "zxczxc", "width": 320.0, "image": image, "application_metadata": metadata, "active_flag": 1})
 
 if __name__ == "__main__":
     main()
